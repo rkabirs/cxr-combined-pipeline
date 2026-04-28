@@ -49,7 +49,7 @@ CHEXPERT_THRESHOLD = 0.70   # inner-product threshold for CheXpert label vectors
 DINO_THRESHOLD     = 0.60
 
 # Retrieval mode: 'baseline' (CLIP-only) | 'mof' (CLIP+DINO) | 'chexpert'
-RETRIEVAL_MODE = os.getenv("RETRIEVAL_MODE", "mof")
+RETRIEVAL_MODE = os.getenv("RETRIEVAL_MODE", "chexpert")
 
 _results_dir_map = {
     "baseline": "modal_artifacts",

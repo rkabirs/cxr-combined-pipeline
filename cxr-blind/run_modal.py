@@ -47,10 +47,10 @@ except Exception:
     volumes={"/mnt/radiology-data": volume},
     timeout=86400  # Allow long execution times (up to 24hours)
 )
-def run_pipeline_on_modal(retrieval_mode: str = "mof"):
+def run_pipeline_on_modal(retrieval_mode: str = "chexpert"):
     """
     Runs the combined CXR pipeline on Modal.
-    retrieval_mode: 'clip' | 'mof' | 'concept'
+    retrieval_mode: 'clip' | 'mof' | 'chexpert' | 'concept'
     """
     import os
     import sys
@@ -183,7 +183,15 @@ def run_pipeline_on_modal(retrieval_mode: str = "mof"):
         index = build_mof_index(train_img_embs, train_dino_embs)
         D_full, I_full = retrieve_top_k_mof(index, test_img_embs, test_dino_embs, config.RETRIEVAL_K + 1)
         retrieval_threshold = config.MOF_THRESHOLD
-    else:  # clip
+    elif retrieval_mode == "chexpert":
+        from src.retrieve_chexpert import load_chexpert_vectors, build_chexpert_index, retrieve_top_k_chexpert
+        print(f"Loading CheXpert vectors from {config.CHEXPERT_FILE}...")
+        train_chex = load_chexpert_vectors(train)
+        test_chex  = load_chexpert_vectors(test)
+        index = build_chexpert_index(train_chex)
+        D_full, I_full = retrieve_top_k_chexpert(index, test_chex, config.RETRIEVAL_K + 1)
+        retrieval_threshold = config.CHEXPERT_THRESHOLD
+    else:  # clip / baseline
         index = build_faiss_index(train_img_embs)
         D_full, I_full = retrieve_top_k(index, test_img_embs, config.RETRIEVAL_K + 1)
         retrieval_threshold = config.CLIP_THRESHOLD
@@ -376,10 +384,10 @@ def run_pipeline_on_modal(retrieval_mode: str = "mof"):
     print(f"Results, tables, and plots saved to {config.RESULTS_DIR}")
 
 @app.local_entrypoint()
-def main(mode: str = "mof"):
+def main(mode: str = "chexpert"):
     """
-    Run the pipeline on Modal.  Pass --mode clip|mof|concept to select retrieval mode.
-    Example: modal run run_modal.py --mode concept
+    Run the pipeline on Modal.  Pass --mode clip|mof|chexpert|concept to select retrieval mode.
+    Example: modal run run_modal.py --mode chexpert
     """
     print(f"Triggering Modal execution in '{mode}' mode...")
     run_pipeline_on_modal.remote(retrieval_mode=mode)
