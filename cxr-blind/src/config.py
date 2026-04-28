@@ -43,10 +43,18 @@ RADGRAPH_MODEL = "radgraph-xl"
 
 # Retrieval & Thresholds
 RETRIEVAL_K = 10
-CLIP_THRESHOLD = 0.85   # cosine threshold for CLIP-only blind detection
-MOF_THRESHOLD  = 0.70   # equivalent threshold for MoF distances ((clip+dino)/2)
-DINO_THRESHOLD = 0.60
-USE_MOF = True  # True: MoF (CLIP+DINO concat) index; False: CLIP-only index
+CLIP_THRESHOLD     = 0.85   # cosine threshold for CLIP-only blind detection
+MOF_THRESHOLD      = 0.70   # equivalent threshold for MoF distances ((clip+dino)/2)
+CHEXPERT_THRESHOLD = 0.70   # inner-product threshold for CheXpert label vectors
+DINO_THRESHOLD     = 0.60
 
+# Retrieval mode: 'baseline' (CLIP-only) | 'mof' (CLIP+DINO) | 'chexpert'
+RETRIEVAL_MODE = os.getenv("RETRIEVAL_MODE", "mof")
+
+_results_dir_map = {
+    "baseline": "modal_artifacts",
+    "mof":      "modal_artifacts_mof",
+    "chexpert": "modal_artifacts_chexpert",
+}
 # Results directory is mode-specific; ARTIFACTS_DIR holds shared embedding caches
-RESULTS_DIR = BASE_PATH / ("modal_artifacts_mof" if USE_MOF else "modal_artifacts")
+RESULTS_DIR = BASE_PATH / _results_dir_map.get(RETRIEVAL_MODE, "modal_artifacts_mof")
